@@ -177,7 +177,7 @@ if __name__ == '__main__':
     torch.cuda.empty_cache()
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_name', default='klue/roberta-base', type=str) # #robert-small
+    parser.add_argument('--model_name', default='klue/roberta-large', type=str) # #robert-small
     parser.add_argument('--batch_size', default=16, type=int)
     parser.add_argument('--max_epoch', default=18, type=int)
     parser.add_argument('--shuffle', default=True)
@@ -194,7 +194,8 @@ if __name__ == '__main__':
     model = Model(args.model_name, args.learning_rate)
 
     # gpu가 없으면 accelerator='cpu', 있으면 accelerator='gpu'
-    trainer = pl.Trainer(accelerator='gpu', max_epochs=args.max_epoch, log_every_n_steps=1)
+    trainer = pl.Trainer(accelerator='gpu', max_epochs=args.max_epoch, log_every_n_steps=1, 
+    accumulate_grad_batches=2, precision=16) #accumulate gradient, mixed precision added 
 
     # Train part
     trainer.fit(model=model, datamodule=dataloader)

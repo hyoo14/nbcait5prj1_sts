@@ -169,15 +169,8 @@ if __name__ == '__main__':
     # 하이퍼 파라미터 등 각종 설정값을 입력받습니다
     # 터미널 실행 예시 : python3 run.py --batch_size=64 ...
     # 실행 시 '--batch_size=64' 같은 인자를 입력하지 않으면 default 값이 기본으로 실행됩니다
-    
-    import gc
-    import torch
-
-    gc.collect()
-    torch.cuda.empty_cache()
-    
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_name', default='klue/roberta-large', type=str) # #robert-small
+    parser.add_argument('--model_name', default='klue/roberta-large', type=str)
     parser.add_argument('--batch_size', default=16, type=int)
     parser.add_argument('--max_epoch', default=3, type=int)
     parser.add_argument('--shuffle', default=True)
@@ -191,15 +184,14 @@ if __name__ == '__main__':
     # dataloader와 model을 생성합니다.
     dataloader = Dataloader(args.model_name, args.batch_size, args.shuffle, args.train_path, args.dev_path,
                             args.test_path, args.predict_path)
-    model = Model(args.model_name, args.learning_rate)
 
     # gpu가 없으면 accelerator='cpu', 있으면 accelerator='gpu'
-    trainer = pl.Trainer(accelerator='gpu', max_epochs=args.max_epoch, log_every_n_steps=1, 
-    accumulate_grad_batches=2, precision=16) #accumulate gradient, mixed precision added 
+    trainer = pl.Trainer(accelerator='gpu', max_epochs=args.max_epoch, log_every_n_steps=1)
 
-    # Train part
-    trainer.fit(model=model, datamodule=dataloader)
+    # Inference part
+    # 저장된 모델로 예측을 진행합니다.
+    model = torch.load('model.pt')
+    predictions = trainer.predict(model=model, datamodule=dataloader)
+
+    # Test part
     trainer.test(model=model, datamodule=dataloader)
-
-    # 학습이 완료된 모델을 저장합니다.
-    torch.save(model, 'model.pt')

@@ -9,6 +9,7 @@ import torch
 import torchmetrics
 import pytorch_lightning as pl
 
+from smart_pytorch import SMARTLoss
 
 class Dataset(torch.utils.data.Dataset):
     def __init__(self, inputs, targets=[]):
@@ -120,28 +121,68 @@ class Model(pl.LightningModule):
         self.lr = lr
 
         # 사용할 모델을 호출합니다.
-        self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(
-            pretrained_model_name_or_path=model_name, num_labels=1)
+        # self.plm = transformers.AutoModelForSequenceClassification.from_pretrained(
+        #     pretrained_model_name_or_path=model_name, num_labels=1, output_hidden_states=True)
         # Loss 계산을 위해 사용될 L1Loss를 호출합니다.
-        self.loss_func = torch.nn.L1Loss()
+        #self.loss_func = torch.nn.L1Loss()
+
+        self.plm = transformers.AutoModelForPreTraining.from_pretrained(
+            pretrained_model_name_or_path=model_name, output_hidden_states=True)
+        self.dropout = torch.nn.Dropout(self.plm.config.hidden_dropout_prob)
+        self.regression = torch.nn.Linear(self.plm.config.hidden_size, 1)
+
+        self.loss_func = SMARTLoss(
+            eval_fn=self.plm,
+            loss_fn=torch.nn.L1Loss(),
+            num_steps=10,
+            step_size=1e-2,
+            noise_var=1e-5
+        )
 
     def forward(self, x):
-        x = self.plm(x)['logits']
+        #x = self.plm(x)['logits']
+        #return x
+        print("----------------------------------checking-----------------------------")
+        #print( x.shape ) #batch16 X emb_size 512
+        outputs = self.plm(x)
+        #print( outputs.size )
+        last_hidden_state = outputs.hidden_states[-1]        
+        pooled_output = last_hidden_state[:, 0]
+        #print( pooled_output.shape )
+        pooled_output = self.dropout(pooled_output)
 
-        return x
+        logits_regression = self.regression(pooled_output)
+
+        return logits_regression, outputs
+
 
     def training_step(self, batch, batch_idx):
+        # x, y = batch
+        # logits = self(x)
+        # loss = self.loss_func(logits, y.float())
+        # self.log("train_loss", loss)
+
+        # return loss
         x, y = batch
-        logits = self(x)
-        loss = self.loss_func(logits, y.float())
+        logits, embeddings = self(x)
+        # 손실을 계산합니다.
+        loss = self.loss_func(embeddings, y.float())
         self.log("train_loss", loss)
 
         return loss
 
     def validation_step(self, batch, batch_idx):
+        # x, y = batch
+        # logits = self(x)
+        # loss = self.loss_func(logits, y.float())
+        # self.log("val_loss", loss)
+
+        # self.log("val_pearson", torchmetrics.functional.pearson_corrcoef(logits.squeeze(), y.squeeze()))
+
+        # return loss
         x, y = batch
-        logits = self(x)
-        loss = self.loss_func(logits, y.float())
+        logits, embeddings = self(x)
+        loss = self.loss_func(embeddings, y.float())
         self.log("val_loss", loss)
 
         self.log("val_pearson", torchmetrics.functional.pearson_corrcoef(logits.squeeze(), y.squeeze()))
@@ -149,14 +190,23 @@ class Model(pl.LightningModule):
         return loss
 
     def test_step(self, batch, batch_idx):
+        # x, y = batch
+        # logits = self(x)
+
+        # self.log("test_pearson", torchmetrics.functional.pearson_corrcoef(logits.squeeze(), y.squeeze()))
         x, y = batch
-        logits = self(x)
+        logits, embeddings = self(x)
 
         self.log("test_pearson", torchmetrics.functional.pearson_corrcoef(logits.squeeze(), y.squeeze()))
 
+
     def predict_step(self, batch, batch_idx):
+        # x = batch
+        # logits = self(x)
+
+        # return logits.squeeze()
         x = batch
-        logits = self(x)
+        logits, _ = self(x)
 
         return logits.squeeze()
 
@@ -177,11 +227,11 @@ if __name__ == '__main__':
     torch.cuda.empty_cache()
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_name', default='klue/roberta-base', type=str) # #robert-small
+    parser.add_argument('--model_name', default='snunlp/KR-ELECTRA-discriminator', type=str) # #robert-small
     parser.add_argument('--batch_size', default=16, type=int)
-    parser.add_argument('--max_epoch', default=18, type=int)
+    parser.add_argument('--max_epoch', default=30, type=int) #best:8
     parser.add_argument('--shuffle', default=True)
-    parser.add_argument('--learning_rate', default=1e-5, type=float)
+    parser.add_argument('--learning_rate', default=5e-6, type=float)
     parser.add_argument('--train_path', default='./data/train.csv')
     parser.add_argument('--dev_path', default='./data/dev.csv')
     parser.add_argument('--test_path', default='./data/dev.csv')
@@ -194,7 +244,8 @@ if __name__ == '__main__':
     model = Model(args.model_name, args.learning_rate)
 
     # gpu가 없으면 accelerator='cpu', 있으면 accelerator='gpu'
-    trainer = pl.Trainer(accelerator='gpu', max_epochs=args.max_epoch, log_every_n_steps=1)
+    trainer = pl.Trainer(accelerator='gpu', max_epochs=args.max_epoch, log_every_n_steps=1) 
+    #accumulate_grad_batches=1, precision=16) #accumulate gradient, mixed precision added 
 
     # Train part
     trainer.fit(model=model, datamodule=dataloader)

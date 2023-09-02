@@ -344,3 +344,304 @@ https://aistages-prod-server-public.s3.amazonaws.com/app/Competitions/000236/dat
 ![](https://lh3.googleusercontent.com/J6QbprYyDeniErGlX4nk-7IQViN2LH24UQVJveYg7uATcI4gVSs5ChrYZhLs31pTKBHP2dKbYzVt5LPQP2xauh3dAWy84sNOtkiGkmgVcq714Qm5J_2_7ELEcc-k4eikaCbxsLySZt1HnmtOtuyePiw)
 
 **
+
+
+
+
+
+**[공유] STS 문제에서 피어슨 상관계수를 사용하는 이유
+
+Posted by 정지수
+
+2023.03.27.15:18
+
+ 7
+
+UP
+
+NLP의 많은 문제들을 풀 때, 대체로 우리는 이미 통상적으로 사용하는 평가 지표가 있습니다. 앞서 배운 것처럼, N21, N2N 문제에는 f1-score, N2M 문제에는 BLEU, ROGUE 등이 있죠.
+
+STS 문제에서는 왜 배웠던 지표가 아닌, 피어슨 상관 계수(Pearson Correlation Coefficient)라는 이름도 어려운 지표를 사용할까요?
+
+이 질문의 답은 “출력 형태”에서 찾아볼 수 있습니다.
+
+일반적인 N21 문제에는 Classification 뿐만 아니라, Regression도 포함되어 있습니다. 둘 다 하나의 숫자, 혹은 라벨을 출력한다는 공통점이 있지만, classification은 정해진 범위 내에서 출력이 있고, regression의 경우 실수 범위에서 수치가 출력된다는 차이점이 있습니다.
+
+피어슨 상관 계수는 이런 regression으로 출력된 예측값 집합과 정답 집합간의 유사도를 나타냅니다.
+
+두 집합 x, y에 대한 피어슨 상관계수 식은 다음과 같습니다.
+
+![](https://lh3.googleusercontent.com/zLDWsdlmdXgNwCUcTnAGPMLM2AwvHRczD44vqZbwxymYZIeBXYlCsb32n80LV9HtSi6JaYlTbGZ-bAcKlmcs_FGq3IXWkColD2SsDfokwM4bUmwI97cVyzLZLNKP_o3hWWY_Ovovh8l35_BE8yrY-vM)
+
+r은 항상 -1~1 사이의 실수를 가지게 됩니다. 높을수록 두 집합 사이의 일치도가 높다고 평가하며, 음수일 경우 두 집합은 서로 역수 관계로 평가됩니다. 대체로 아래 표처럼 따라 판별됩니다.
+
+![](https://lh5.googleusercontent.com/X6MbnmL6Gyru_fZ53myqHDcac3mF9K74aX5OIus2Z_G0hbHvXf5-Qk_cu9XZSRFE8d_zLSCgUCC8l5aHalTKwZnZbS9oLhA15CF35aIpcZ6ebPlhhusuwEJ8THJiioGQNcp4meY-d4psq5usYEZD43g)
+
+Hinkle, D. E., Wiersma, W., & Jurs, S. G. (2003). Applied statistics for the behavioral sciences  (Vol. 663). Houghton Mifflin College Division.
+
+피어슨 상관계수에도 단점은 있습니다. 두 집합의 선형적 관계만을 보기 때문에, 점수로만 판단하기에는 너무 다양한 형태가 존재할 수 있다는 점입니다.
+
+![](https://lh5.googleusercontent.com/WC4jcYsp6bqL1xOP_xmZqa2HIwg4gy0kuKOMU__RRfpzi6OSMH8FifNCRXaDbWcKVqTdzUgp8Ky6rIWoXYiOdKqt1SX_UroJM43WEAaOr2tPO25VGpd1zDuI5UKaMCkHNpLCEXmDuKN8-HN0SKaSa90)
+
+Anscombe, F. J. (1973). Graphs in statistical analysis. The american statistician , 27 (1), 17-21.
+
+일례로, 위 그림은 모두 0.82의 상관계수를 가지나 모두 생김새가 다릅니다. 그러므로, 결과 분석 시 꼭 산점도를 그려보며 모델의 취약점을 평가해야합니다.
+
+그렇다면, 실제 코드에서 피어슨 상관계수를 어떻게 적용할까요?
+
+이미 여러 regression 문제에 사용되는 지표인 만큼, torchmetric 라이브러리에 이미 구현되어 있습니다.
+
+적용 예제는 아래와 같습니다.
+
+import torch
+
+from torchmetrics import PearsonCorrcoef
+
+target = torch.tensor([5.0, 6.0, 0.0, 2.0])
+
+preds = torch.tensor([2.5, 4.57, 2, 1.5])
+
+pearson = PearsonCorrcoef()
+
+pearson(preds, target)
+
+해당 예제는 작동 후 0.7692의 상관 계수를 출력합니다.
+
+![](https://lh3.googleusercontent.com/6xu6wLXx0XhiNOaubRGUohh28FnyH_KhvQa4f85c9J93kTfUofqRJ5RgvWn6lYowGKl7tWkxe3bOPGJIZnUNWdckv-tksoXSBrTZKyHWMi0ECyRhwyPs8kVz4a1agCQayFYTS2a8Ny_L3CMvo0XPExQ)
+
+피어슨 상관계수는 두 텐서의 shape이 동일해야한다는 점을 주의하여 적용해주세요!
+
+참고 사이트
+
+https://torchmetrics.readthedocs.io/en/latest/regression/pearson_corr_coef.html**
+
+
+
+
+
+**
+
+[공유] 거인의 어깨에 올라서기
+
+Posted by 황태욱_조교
+
+2023.03.28.18:07
+
+ 5
+
+UP
+
+컴퓨터공학은 다른 학문에 비해 변화 속도가 빠른 편인데, 그 중 AI는 유독 더 빠른편입니다. 최신 기술을 찾는 가장 확실한 방법은 논문을 보는 것입니다.
+
+하지만 다달이 state of the art(SOTA, 최고성능) 모델이 갱신되는 상황이라, 최신 논문을 쫓아가기가 상당히 버겁습니다.
+
+반면에 AI라는 특수한 학문이라서 최신 기술을 빠르게 파악할 수 있는 방법이 있습니다.
+
+1. 태스크 및 데이터셋별로 SOTA를 확인할 수 있는 [PapersWithCode](https://paperswithcode.com/)
+
+2. 세계 최대의 데이터 과학자 커뮤니티 [Kaggle](https://www.kaggle.com/)
+
+3. 국내의 AI 경진대회 플랫폼 [Dacon](https://dacon.io/), [AIFactory](https://aifactory.space/)
+- [PapersWithCode](https://paperswithcode.com/)는 태스크와 데이터셋별로 SOTA 모델 히스토리와 해당 모델들의 논문, 깃허브 링크를 모아둔 웹사이트입니다. 이곳을 통해 현재 최신 트렌드와 코드까지 찾을 수 있습니다.  
+  ![](https://lh6.googleusercontent.com/e3tGqpbcpyjjrmza4B9abS2v-t9BQg8Farcvlft3zEYG2mkVIKJm7du8O0QaGxfgdd6WFCWa4dc6GKfa-Q99iH6D8qNgSHc3l2oDdtr5Sb44KbW-xPgcFhLhFJTfJhBWcpBMO0wV8aDso66Eb2RPIT8)  
+
+- [Kaggle](https://www.kaggle.com/)은 AI 경진대회와 커뮤니티가 적절히 융합되어있습니다. 집단지성을 통한 문제해결을 표방하기 때문에 Code, Discussions에 수많은 정보가 공유되고 있습니다. 또한 상금이 걸려있는 Competitions에도 실시간으로 각자가 수행한 EDA(탐색적 데이터 분석)결과나 높은 성능을 보이는 모델 코드를 공유하는 최신 기술을 빠르게 접할 수 있습니다.  
+  ![](https://lh4.googleusercontent.com/1D84fP0EqtrMTxlj2jkyT03GE5An0e9D2imyMgEzxy5DZ8PbEbHvWpYenc965YO0ovWsmnEQYxq3fFKJVDNzPgnXvEofEziLhTnmrLWgikVuv5unzVOLHcdnCQEDdwJqefMHCaKWOooH2iXLFh9w4W0)  
+
+- [Dacon](https://dacon.io/)과 [AIFactory](https://aifactory.space/)는 국내 AI 경진대회로, Kaggle에 비하면 정보의 공유량은 현저히 낮습니다. 하지만 대회마다 베이스라인 코드를 함께 공개하는 편이며, 수상작의 코드도 공개하는 추세입니다.  
+  ![](https://lh4.googleusercontent.com/HlrRRyNkJm8dDwTLjXtpSpCj-sj5Q6ZpI_ubhCHnQGRsuZSyNEfCrslR2sGi9Q2W7DcXVYr2oWKJmt4DsviMXTC3WzIyrsVhLMz23RuZLnubSmLFAVg1SA3bc2k-wl1bo54JsIiSC-BrisLUy31kkdI)
+
+이렇게 최신 기술을 접할 수 있는 방법을 알아보았습니다. 이들을 잘 활용하기 위한 팁은 아래와 같습니다.
+
+1. [PapersWithCode](https://paperswithcode.com/)를 통해 최신 트랜드 모델과 논문참고하기
+
+2. [Kaggle](https://www.kaggle.com/)에 있는 유사 태스크 및 데이터셋을 찾아 최신 기술(EDA, 앙상블, 모델 등) 알아보기
+
+3. 1번과 2번이 어렵다면 [Dacon](https://dacon.io/)과 [AIFactory](https://aifactory.space/)에서 유사 태스크 및 데이터셋을 찾아 베이스라인코드와 공개된 코드 활용하기
+
+이러한 방법만 잘 활용하시면 쉽게 상위권에 근접할 수 있습니다.
+
+아직까지 국내에서는 대회에서 정보 교류가 적은 편인데, 서로 발전할 수 있는 기회가 많아지길 바랍니다!
+
+**
+
+
+
+**
+
+[공유] Huggingface 200% 활용하기
+
+Posted by 남궁혁_조교
+
+2023.03.29.13:48
+
+ 5
+
+UP
+
+이번 토론에서 Huggingface에 대해 알아봅시다.
+
+1. Huggingface 란 무엇인가?
+
+HuggingFace는 다음을 제공하는 커뮤니티 및 Data Science 플랫폼입니다.
+
+![](https://lh6.googleusercontent.com/uXv8sYf3vHZN4kIj3O5BrgSmPhU1CTPIeQD5Kov-ITrNUCVKGvtKSR-rDKmHoKsdx-803RQi320KUsHPO9PiYQmv_QLxV5tLJzHlV76D8KGHrVhE41SAMtGwSru3MSa8DlJasfEel_QlLHhlCkyHxyE)
+
+- 사용자가 오픈 소스(OS) 코드 및 기술을 기반으로 ML 모델을 구축, 교육 및 배포할 수 있는 도구
+
+- 광범위한 Data Scientist, Researcher 및 ML 엔지니어 커뮤니티가 함께 모여 아이디어를 공유하고, 지원을 받고, 오픈 소스 프로젝트에 기여할 수 있는 곳
+
+- JAX, PyTorch 및 TensorFlow를 지원하는 최첨단 기계 학습
+
+- 참고 링크
+
+- [GitHub - huggingface/transformers: 🤗 Transformers: State-of-the-art Machine Learning for Pytorch, TensorFlow, and JAX.](https://github.com/huggingface/transformers)
+
+- 일반적인 [layer.py](http://layer.py/), [model.py](http://model.py/) 는 transformer.models 로 대응해서 사용할 수 있습니다.
+
+transformers.models
+
+- 트랜스포머 기반의 다양한 모델을 pytorch, tensorflow로 각각 구현해 놓은 모듈입니다.
+
+- 각 모델에 맞는 tokenizer 도 구현되어 있습니다.
+1. Huggingface Tasks
+
+HuggingFace는 텍스트, 시각 및 오디오와 같은 다양한 양식에 대한 작업을 수행하기 위해 수천 개의 사전 훈련된 모델을 제공합니다.
+
+이러한 모델은 다음에 적용할 수 있습니다.
+
+![](https://lh4.googleusercontent.com/CqoH4o9KxNV2qkYkNQ6HN2_fQkuclPqmtc-RHy3sctFhFRbKXl9_MsxtXZJ0fns-hh5i369I_EfIxNfCvYUyOGvmX3xFOLO6kqei8pyRYG_GnGM2vdEFEFfJbJo-cXkwuchWyzaedLB-iw2EQD9aWtc)
+
+- 100개 이상의 언어로 된 텍스트 분류, 정보 추출, 질문 답변, 요약, 번역, 텍스트 생성과 같은 작업을 위한 텍스트
+
+- 이미지들로 된 이미지 분류, 객체 감지 및 세분화와 같은 작업들
+
+- 오디오로 된 음성 인식 및 오디오 분류와 같은 작업들
+
+- 또한 테이블 질문 응답, 광학 문자 인식, 스캔 문서에서 정보 추출, 비디오 분류 및 시각적 질문 응답과 같이 여러 작업을 결합하여 수행 가능
+
+Transformers는 주어진 텍스트에서 사전 훈련된 모델을 빠르게 다운로드 및 사용하고, 자체 데이터에서 미세 조정한 다음, 모델 허브 의 커뮤니티와 공유할 수 있는 API를 제공합니다 .
+
+2. Huggingface 모델
+
+https://huggingface.co/models
+
+HuggingFace는 다양한 Transformer 모델들이 배포되어 있습니다. 여러분의 목적을 위한 모델을 찾고 자신의 코드에 적용해 보는 것이 쉽고 간편하게 되어있어요.
+
+Tasks, 라이브러리, 데이터세트 종류, 국가언어등 다양한 조건으로 찾아볼 수 있으며 찾은 모델의 이름을 통해 아래와 같이 자신의 코드에 모델을 쉽게 불러올 수 있습니다.
+
+from transformers import AutoTokenizer, AutoModel
+
+model = AutoModel.from_pretrained("bert-base-cased")
+
+tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+
+AutoConfig를 통해 모델의 구성을 불러올 수 있으며 다양한 모델들의 구성을 불러와 설정할 수 있습니다.
+
+from transformers import AutoConfig
+
+# huggingface.co 와 cache에서 모델 구성 다운로드
+
+config = AutoConfig.from_pretrained("bert-base-uncased")
+
+# 해당 경로에 있는 모델 구성 파일 불러오기
+
+config = AutoConfig.frompretrained("./test/bertsavedmodel/myconfiguration.json")
+
+# 학습된 모델의 구성의 설정 수정하기
+
+config, unusedkwargs = AutoConfig.frompretrained("bert-base-uncased", outputattentions=True, foo=False, returnunused_kwargs=True)
+
+print(config.output_attentions) # True
+
+print(unused_kwargs) # {'foo': False}
+
+그외 Tokenizer, 사전학습을 위한 모델 API, 특정 task를 위한 모델 API와 같은 다양한 기능들을 제공하니 아래 링크에서 튜토리얼을 확인해보세요!
+
+https://huggingface.co/docs/transformers/model_doc/auto
+
+3. Huggingface 데이터
+
+[Hugging Face – The AI community building the future.](https://huggingface.co/datasets)
+
+HuggingFace는 여러 작업들을 위한 데이터들이 배포되어 있습니다. 자연어, 오디오, 이미지 등 다양한 데이터들과 모델을 평가하기 위한 벤치마크 데이터들도 제공하니 자신의 모델을 쉽게 평가할 수 있어요!
+
+다양한 조건으로 원하는 모델을 찾을 수 있고 다른 사람이 많이 찾는 데이터나 최신 데이터를 찾아 자신의 코드에 적용하기 쉽게 되어있습니다.
+
+또한 데이터를 선택하면 어떤 모델들이 사용을 해보았는지, 어떤 구조인지, 어떻게 사용하는지 등의 정보가 보기 좋게 정리되어 빠르게 데이터를 파악하고 활용할 수 있습니다.
+
+![](https://lh3.googleusercontent.com/zpdzBcVO0FmPrRXYmA3W8Fau0BsVWFv0qr8MDwLLkDmTUIpKJ3y8BaLdDBwV0oHwHk2X9nmXamMbdVUwE2N7JOUviCo1sj9PmXTm75b5SyYx2kQg2pwDVTRqCjGJouevzTEQaSU2yoI5bMj7jY4-x90)
+
+그리고 데이터 또한 모델처럼 간편하게 불러올 수 있어요. loaddatasetbuilder를 통해 데이터에 대한 설명과 구조를 볼 수 있으며 load_dataset로 데이터를 불러와 여러분의 코드에 활용할 수 있습니다.
+
+from datasets import load_dataset_builder
+
+dsbuilder = loaddatasetbuilder("rottentomatoes")
+
+# 데이터의 설명
+
+ds_builder.info.description
+
+# 데이터의 특징
+
+ds_builder.info.features
+
+# {'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None), 'text': Value(dtype='string', id=None)}
+
+from datasets import load_dataset
+
+dataset = load_dataset("rottentomatoes")
+
+'''
+
+DatasetDict({
+
+    train: Dataset({
+
+        features: ['text', 'label'],
+
+        num_rows: 8530
+
+    })
+
+    validation: Dataset({
+
+        features: ['text', 'label'],
+
+        num_rows: 1066
+
+    })
+
+    test: Dataset({
+
+        features: ['text', 'label'],
+
+        num_rows: 1066
+
+    })
+
+})
+
+'''
+
+dataset = loaddataset("rottentomatoes", split="train")
+
+'''
+
+Dataset({
+
+    features: ['text', 'label'],
+
+    num_rows: 8530
+
+})
+
+'''
+
+아래 링크를 통해 더 다양한 기능을 확인할 수 있습니다. 더 자세히 알고 싶으면 튜토리얼을 진행해보세요.
+
+[Overview](https://huggingface.co/docs/datasets/tutorial)
+
+지금까지 Huggingface에 대해 알아보았습니다. Huggingface는 커뮤니티 및 Data Science 플랫폼으로 모델과 데이터 및 다양한 기능을 제공하는데요. 대표적으로 모델들을 찾아 사용하는 방법과 데이터를 활용하는 방법에 대해 이야기 했습니다. 여러분의 코드에 맞는 데이터을 찾아 적용하거나 다양한 모델들을 통해 성능 개선을 해보면 좋을 것 같습니다.
+
+**

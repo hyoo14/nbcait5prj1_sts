@@ -1,110 +1,91 @@
+# STS(Semantic Text Similarity, STS)
+
+Semantic Text Similarity (STS) is a natural language processing task that quantifies how similar two sentences are in terms of meaning.
+
+#Boostcamp 5th #NLP
+
+Period| 2023.04.12 ~ 2023.04.20 19:00
+
+[한글로 보기](https://github.com/bootcamphyunwoo/naver_bcait5_lv1_prj1_nlp_sts)
+
+## Introduction
 
 
-# 문장 간 유사도 측정
 
-의미 유사도 판별(Semantic Text Similarity, STS)이란 두 문장이 의미적으로 얼마나 유사한지를 수치화하는 자연어처리 태스크입니다.
-
-#부스트캠프5기 #자연어처리
-
-기간| 2023.04.12 ~ 2023.04.20 19:00
+When writing for information transfer purposes, such as in reports or papers, we often find ourselves repeating the same phrases or sentences. Redundant sentences can be one of the factors that decrease readability, thereby reducing the overall quality of the text. In such cases, humans undergo a correction process, recognizing and revising semantically redundant sentences. But how can a machine distinguish between sentences that are structurally different but semantically similar?
 
 
-
-* 소개
-  
-  **
-  
-  보고서나 논문 등의 정보 전달 목적의 글을 쓰다보면, 같은 말을 반복해서 쓰게 되는 경우가 많습니다. 중복된 문장들은 가독성을 떨어뜨리는 요인 중 하나로써, 글의 퀄리티가 낮아지게 만들죠. 이런 경우 인간은 교정 작업을 하며, 의미적으로 중복된 문장을 인지하고 수정하게 됩니다. 그렇다면 기계의 경우 서로 구조적으론 다르지만, 의미가 유사한 것을 어떻게 구별할 수 있을까요?
-  
-  **
 
 **![](https://lh5.googleusercontent.com/veZu5SdKvujQWfYi1_HgnA8J4IARC_51yWIQbZSpfmLhQEuFhBUk4jAmktg-8z1kWKgB62tOot8px6RfJR1BL81RNvhdpirrrXQDFr-cKhg4mroMu2_NNRGwnJAlMyxPQMzA1xTqLn9103KVVuud6-M)**
 
-**
+What is contextual similarity measurement?
 
-문맥적 유사도 측정이란?
+A task that can be used in such cases is Semantic Text Similarity (STS). STS is an NLP task that determines how similar two texts are. Typically, it takes two sentences as input and assesses how semantically similar the pair of sentences is.
 
-이런 경우에 사용할 수 있는 Task가 바로, Semantic Text Similarity (STS)입니다. STS란 두 텍스트가 얼마나 유사한지 판단하는 NLP Task입니다. 일반적으로 두 개의 문장을 입력하고, 이러한 문장쌍이 얼마나 의미적으로 서로 유사한지를 판단합니다.
 
-**
 
 **![](https://lh5.googleusercontent.com/lMF4vMp9MkHjhw1utnPLTgpGA6fH7NrsU5h9gVMu7BssGfEGDeec0LQU0opahJXCQVz9oArM55SM1o-npfAv96x2q2Y6OzGM9Ph-9D5IZylsbomevV5IGFvY9eawaRfv1gx6lKOXRz8igiTWVOfbI2s)**
 
-**
 
-Textual Entailment와 Semantic Text Similarity의 차이점
 
-관계를 예측한다는 점에서 Textual Entailment (TE)와 헷갈릴 수 있습니다. 두 문제의 가장 큰 차이점은 ‘방향성’입니다. STS는 두 문장이 서로 동등한 양방향성을 가정하고 진행되지만, TE의 경우 방향성이 존재합니다. 예를 들어 자동차는 운송수단이지만, 운송수단 집합에 반드시 자동차만 있는 것은 아닙니다. 또한 출력 형태에 대해서도 차이가 있습니다. TE, STS 모두 관계 유사도에 대해 참/거짓으로 판단할 수 있지만, STS는 수치화된 점수를 출력할 수도 있습니다.
+Differences between Textual Entailment and Semantic Text Similarity
 
-이처럼 STS의 수치화 가능한 양방향성은 정보 추출, 질문-답변 및 요약과 같은 NLP 작업에 널리 활용되고 있습니다. 실제 어플리케이션으로는 데이터 증강, 챗봇의 질문 제안, 혹은 중복 문장 탐지 등에 응용되고 있습니다.
+It can be confusing to distinguish Textual Entailment (TE) from Semantic Text Similarity (STS) since both predict relationships. The most significant difference between the two problems is their 'directionality'. While STS operates under the assumption of bidirectional equivalence between two sentences, TE inherently has directionality. For instance, while a car is a mode of transportation, the set of modes of transportation doesn't exclusively contain cars. Additionally, there is a difference in their output forms. Both TE and STS can judge relational similarity as true/false, but STS can also produce a quantified score.
 
-우리는 STS 데이터셋을 활용해 두 문장의 유사도를 측정하는 AI모델을 구축할 것입니다. 유사도 점수와 함께 두 문장의 유사함을 참과 거짓으로 판단하는 참고 정보도 같이 제공하지만, 최종적으로 0과 5사이의 유사도 점수를 예측하는 것을 목적으로 합니다!
+Such bidirectionality and the ability to quantify in STS have been widely utilized in NLP tasks like information extraction, question-answering, and summarization. In practical applications, it's employed for data augmentation, suggesting questions for chatbots, or detecting duplicate sentences.
 
-학습 데이터셋 9,324개, 검증 데이터셋 550개, 평가 데이터는 1,100개가 제공됩니다. 평가 데이터의 50%는 Public 점수 계산에 활용되어 실시간 리더보드에 표기가 되고, 남은 50%는 Private 결과 계산에 활용되어 대회 종료 후 평가됩니다.
+We will construct an AI model that measures the similarity between two sentences using the STS dataset. While we provide reference information judging the similarity of two sentences as true or false along with a similarity score, our primary objective is to predict a similarity score between 0 and 5!
 
-본 대회의 최종 결과물은 CSV 확장자 파일을 제출하게 됩니다.
-
-- input : 두 개의 문장과 ID, 유사도 정보가 담긴 CSV 파일
-
-- output : 평가데이터에 있는 각 문장쌍에 대한 ID와 유사도 점수가 담긴 CSV 파일
-
-**
+The training dataset consists of 9,324 items, the validation dataset has 550, and there are 1,100 items in the evaluation dataset. 50% of the evaluation data will be used for public score calculations and will be displayed on the real-time leaderboard, while the remaining 50% will be used for private results and evaluated after the competition ends.
 
 
 
-**
+The final submission for this competition will be in the form of a CSV extension file.
 
-피어슨 상관 계수(Pearson Correlation Coefficient ,PCC)는 두 변수 X 와 Y 간의 선형 상관 관계를 계량화한 수치로, 보통 상관관계라 함은 피어슨 상관관계를 칭합니다.
+- Input: A CSV file containing two sentences, ID, and similarity information.
 
-코시-슈바르츠 부등식에 의해 -1~1 사이의 값을 가지며, +1은 완벽한 양의 선형 상관 관계, 0은 선형 상관 관계 없음, -1은 완벽한 음의 선형 상관 관계를 의미합니다.
-
-**
-
-**
-
-![](https://lh5.googleusercontent.com/xONAwpoq9MXiZKe-09QUGU8so9pRhMboPTxOEG_Q2Z4QorEgtJamBFcOz6zjqt4IdCXw0z1NN3mCHIN805uWPUSTtVvKDyutCpB1AekQi2iBFaJou5DlFgwvidIR5Fcu75TydYmURYY90VXwdBbVX5I)**
+- Output: A CSV file containing the ID and similarity score for each pair of sentences in the evaluation data.
 
 
 
-**
+### Evaluation Metrics
 
-피어슨 상관 계수는 정답과 예측이 일치하지 않더라도 증감율이 일치하면 1에 가까운 값을 보입니다.
+The Pearson Correlation Coefficient (PCC) is a measure quantifying the linear correlation between two variables, X and Y. Typically, when referring to correlation, it denotes the Pearson correlation.
 
-반대로 정답값과 예측이 근사하더라도 증감율이 다르면 -1에 가까운 값을 보일 수 있습니다.
-
-이는 정답을 정확히 예측하는 것 보다, 높은 값은 확실히 높게, 낮은 값은 확실히 낮게, 즉 전체적인 경향을 잘 예측하는 것이 중요함을 의미합니다.
-
-**
+According to the Cauchy-Schwarz inequality, its value ranges between -1 and 1. A value of +1 indicates a perfect positive linear correlation, 0 indicates no linear correlation, and -1 indicates a perfect negative linear correlation.
 
 
 
+![](https://lh5.googleusercontent.com/xONAwpoq9MXiZKe-09QUGU8so9pRhMboPTxOEG_Q2Z4QorEgtJamBFcOz6zjqt4IdCXw0z1NN3mCHIN805uWPUSTtVvKDyutCpB1AekQi2iBFaJou5DlFgwvidIR5Fcu75TydYmURYY90VXwdBbVX5I)
 
+The Pearson Correlation Coefficient shows a value close to 1 even if the actual and predicted values don't match, as long as their rates of increase or decrease are consistent.
 
-**
+Conversely, even if the actual and predicted values are close, if their rates of increase or decrease differ, it can show a value closer to -1.
 
-- 프로젝트 전체 기간 (2주) : 4월 10일 (월) 10:00 ~ 4월 20일 (목) 19:00
-
-- 팀 병합 기간 : 4월 11일 (화) 16:00 까지
-
-- 팀명 컨벤션 : 도메인팀번호(2자리)조 / ex) CV_03조, NLP_02조, RecSys_08조
-
-- 리더보드 제출 오픈 : 4월 12일 (수) 10:00
-
-- 리더보드 제출 마감 : 4월 20일 (목) 19:00
-
-- 최종 리더보드 (Private) 공개 : 4월 20일 (목) 20:00
-
-- GPU 서버 할당 : 4월 10일 (월) 10:00
-
-- GPU 서버 회수 : 4월 28일 (금) 16:00
-
-**
+This indicates that rather than precisely predicting the correct values, it's more important to accurately predict the overall trend, ensuring higher values are indeed higher and lower values are decidedly lower.
 
 
 
-**
+### Detailed Timeline
 
-대회 룰
+* Entire project duration (2 weeks): April 10th (Monday) 10:00 ~ April 20th (Thursday) 19:00
+- Team merging period: Until April 11th (Tuesday) 16:00
+
+- Team name convention: DomainTeamNumber(2 digits)_Group / ex) CV_03 Group, NLP_02 Group, RecSys_08 Group
+
+- Leaderboard submission opens: April 12th (Wednesday) 10:00
+
+- Leaderboard submission deadline: April 20th (Thursday) 19:00
+
+- Final leaderboard (Private) release: April 20th (Thursday) 20:00
+
+- GPU server allocation: April 10th (Monday) 10:00
+
+- GPU server retrieval: April 28th (Friday) 16:00
+
+
+
+### Competition Rules
 
 - [대회 참여 제한] NLP 도메인을 수강하고 있는 캠퍼에 한하여 리더보드 제출이 가능합니다.
 
@@ -122,11 +103,7 @@ Textual Entailment와 Semantic Text Similarity의 차이점
 
 - [데이터셋 저작권] 대회 데이터셋은 '캠프 교육용 라이선스' 아래 사용 가능합니다. 저작권 관련 세부 내용은 부스트코스 공지사항을 반드시 참고 해주세요.
 
-**
 
-
-
-**
 
 AI Stages 대회 공통사항
 
@@ -144,8 +121,6 @@ AI Stages 대회 공통사항
 - 타 참가자와 토론이 아닌 단순 솔루션을 캐내는 행위
 
 **
-
-
 
   **
 
@@ -183,8 +158,6 @@ AI Stages 대회 공통사항
 
 **![](https://lh5.googleusercontent.com/fmyJjwGukIcg2MIVXKFI5tz68X6M1OVF0qUDuTLFzBkWNpc3L1NUi817FtQxvFC28Q6fa5RPis4dESiM7Gglas6UopR7m7WjkX4lyvHIQgNAmbeDun7ldx_LA1buNMnyRnHmWeiC-BDy-cldqS1rddQ)**
 
-
-
 **
 
 - id (문자열) : 문장 고유 ID입니다. 데이터의 이름과 버전, train/dev/test가 적혀 있습니다.
@@ -208,8 +181,6 @@ AI Stages 대회 공통사항
 제공되는 데이터는 train.csv / dev.csv / test.csv / sample_submission.csv의 4개의 파일로 되어있으며 train.csv, dev.csv 파일로 학습하여 모델을 생성합니다.
 
 **
-
-
 
 **
 
@@ -239,17 +210,9 @@ AI Stages 대회 공통사항
 
 ![](https://lh6.googleusercontent.com/f1yvqoNZwuLLHj_uSWs36M1DeANRBkWZwDcdQkr4r3vpsMaso4WmmTmNgu3218TNWdeWkUd-VgyMQsqaNojd-faJPQhFMzpODntPgZ9zCO1SgZONdO0wkOO6ainnvZX6NT7s9-pTaW7eh_0ZDTJ_lGA)**
 
-
-
 **여러분의 과제는 학습된 모델로 test.csv 파일을 활용하여 출력되는 예측 값을 제출하는 것입니다. 제출 파일은 sample_submission.csv 와 같은 구조를 가져야 합니다. sample_submission.csv 파일의 구조는 테스트 데이터의 id가 있어야 하고 target 에 테스트 데이터의 id와 맞게 예측된 0~5점의 label 값이 들어가야 합니다.**
 
-
-
 **![](https://lh3.googleusercontent.com/NJCFJUCXEULWV_AGPlw8i217tGTw34dEm5sEWIy0kxGWLw5V9XLwizMEzFN04zgOKZFtrzGju0XdNRfWEhs5KIOii54h8P_6ufRDJKMBU7i8BxAqyQGONLc_qCjA9ObtG1yh528D-_R_Vio81k7K9nA)**
-
-
-
-
 
 **
 
@@ -331,6 +294,8 @@ requirements.txt
 3. sample_submission.csv를 불러와 target만 예측된 결과로 변경하고 output.csv로 저장합니다.
 - 코드 실행이 끝나면 output.csv라는 예측 결과 파일이 생성되고 리더보드
 
+### Links
+
 Download Data Link
 
 https://aistages-prod-server-public.s3.amazonaws.com/app/Competitions/000236/data/data.tar.gz
@@ -339,25 +304,23 @@ Download Baseline Code Link
 
 https://aistages-prod-server-public.s3.amazonaws.com/app/Competitions/000236/data/code.tar.gz
 
+
+
+### Leader Board
+
 ![](https://lh4.googleusercontent.com/8mQc-x-HbA7symQiQUJw9g1g1gEu6jXRZiHNdmpAOAkPBrwK9ZkEDw1KkeI058SAX3naUukrbX8MC7CSqTMr9Tg-7RwFxnPbByN72e-q-2MhmcVeckwoovSMs8nX5gsAQg96wKR4adE4_zz1NxpuZsY)
 
 ![](https://lh3.googleusercontent.com/J6QbprYyDeniErGlX4nk-7IQViN2LH24UQVJveYg7uATcI4gVSs5ChrYZhLs31pTKBHP2dKbYzVt5LPQP2xauh3dAWy84sNOtkiGkmgVcq714Qm5J_2_7ELEcc-k4eikaCbxsLySZt1HnmtOtuyePiw)
 
-**
 
 
+### ETC
 
-
-
-**[공유] STS 문제에서 피어슨 상관계수를 사용하는 이유
+[공유] STS 문제에서 피어슨 상관계수를 사용하는 이유
 
 Posted by 정지수
 
-2023.03.27.15:18
 
- 7
-
-UP
 
 NLP의 많은 문제들을 풀 때, 대체로 우리는 이미 통상적으로 사용하는 평가 지표가 있습니다. 앞서 배운 것처럼, N21, N2N 문제에는 f1-score, N2M 문제에는 BLEU, ROGUE 등이 있죠.
 
@@ -417,19 +380,13 @@ https://torchmetrics.readthedocs.io/en/latest/regression/pearson_corr_coef.html*
 
 
 
-
-
-**
-
 [공유] 거인의 어깨에 올라서기
 
 Posted by 황태욱_조교
 
 2023.03.28.18:07
 
- 5
 
-UP
 
 컴퓨터공학은 다른 학문에 비해 변화 속도가 빠른 편인데, 그 중 AI는 유독 더 빠른편입니다. 최신 기술을 찾는 가장 확실한 방법은 논문을 보는 것입니다.
 
@@ -463,11 +420,7 @@ UP
 
 아직까지 국내에서는 대회에서 정보 교류가 적은 편인데, 서로 발전할 수 있는 기회가 많아지길 바랍니다!
 
-**
 
-
-
-**
 
 [공유] Huggingface 200% 활용하기
 
@@ -475,9 +428,7 @@ Posted by 남궁혁_조교
 
 2023.03.29.13:48
 
- 5
-
-UP
+ 
 
 이번 토론에서 Huggingface에 대해 알아봅시다.
 
@@ -643,5 +594,3 @@ Dataset({
 [Overview](https://huggingface.co/docs/datasets/tutorial)
 
 지금까지 Huggingface에 대해 알아보았습니다. Huggingface는 커뮤니티 및 Data Science 플랫폼으로 모델과 데이터 및 다양한 기능을 제공하는데요. 대표적으로 모델들을 찾아 사용하는 방법과 데이터를 활용하는 방법에 대해 이야기 했습니다. 여러분의 코드에 맞는 데이터을 찾아 적용하거나 다양한 모델들을 통해 성능 개선을 해보면 좋을 것 같습니다.
-
-**

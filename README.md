@@ -10,11 +10,7 @@ Period| 2023.04.12 ~ 2023.04.20 19:00
 
 ## Introduction
 
-
-
 When writing for information transfer purposes, such as in reports or papers, we often find ourselves repeating the same phrases or sentences. Redundant sentences can be one of the factors that decrease readability, thereby reducing the overall quality of the text. In such cases, humans undergo a correction process, recognizing and revising semantically redundant sentences. But how can a machine distinguish between sentences that are structurally different but semantically similar?
-
-
 
 **![](https://lh5.googleusercontent.com/veZu5SdKvujQWfYi1_HgnA8J4IARC_51yWIQbZSpfmLhQEuFhBUk4jAmktg-8z1kWKgB62tOot8px6RfJR1BL81RNvhdpirrrXQDFr-cKhg4mroMu2_NNRGwnJAlMyxPQMzA1xTqLn9103KVVuud6-M)**
 
@@ -22,11 +18,7 @@ What is contextual similarity measurement?
 
 A task that can be used in such cases is Semantic Text Similarity (STS). STS is an NLP task that determines how similar two texts are. Typically, it takes two sentences as input and assesses how semantically similar the pair of sentences is.
 
-
-
 **![](https://lh5.googleusercontent.com/lMF4vMp9MkHjhw1utnPLTgpGA6fH7NrsU5h9gVMu7BssGfEGDeec0LQU0opahJXCQVz9oArM55SM1o-npfAv96x2q2Y6OzGM9Ph-9D5IZylsbomevV5IGFvY9eawaRfv1gx6lKOXRz8igiTWVOfbI2s)**
-
-
 
 Differences between Textual Entailment and Semantic Text Similarity
 
@@ -38,23 +30,17 @@ We will construct an AI model that measures the similarity between two sentences
 
 The training dataset consists of 9,324 items, the validation dataset has 550, and there are 1,100 items in the evaluation dataset. 50% of the evaluation data will be used for public score calculations and will be displayed on the real-time leaderboard, while the remaining 50% will be used for private results and evaluated after the competition ends.
 
-
-
 The final submission for this competition will be in the form of a CSV extension file.
 
 - Input: A CSV file containing two sentences, ID, and similarity information.
 
 - Output: A CSV file containing the ID and similarity score for each pair of sentences in the evaluation data.
 
-
-
 ### Evaluation Metrics
 
 The Pearson Correlation Coefficient (PCC) is a measure quantifying the linear correlation between two variables, X and Y. Typically, when referring to correlation, it denotes the Pearson correlation.
 
 According to the Cauchy-Schwarz inequality, its value ranges between -1 and 1. A value of +1 indicates a perfect positive linear correlation, 0 indicates no linear correlation, and -1 indicates a perfect negative linear correlation.
-
-
 
 ![](https://lh5.googleusercontent.com/xONAwpoq9MXiZKe-09QUGU8so9pRhMboPTxOEG_Q2Z4QorEgtJamBFcOz6zjqt4IdCXw0z1NN3mCHIN805uWPUSTtVvKDyutCpB1AekQi2iBFaJou5DlFgwvidIR5Fcu75TydYmURYY90VXwdBbVX5I)
 
@@ -64,7 +50,27 @@ Conversely, even if the actual and predicted values are close, if their rates of
 
 This indicates that rather than precisely predicting the correct values, it's more important to accurately predict the overall trend, ensuring higher values are indeed higher and lower values are decidedly lower.
 
+## Team Approach
 
+### PLM trials
+
+We have tried BERT, RoBERTa, ELECTRA PLMs with base and large version as a plug-and-play way. In this project, ELECTRA PLM shows the best performance among other PLMs.
+
+### Data Augmentations
+
+For improving performance, we have tested various data augmentation methods such as swaping sentences, copying sentences.
+
+### Fine-Tuning Methods
+
+We have chose multitask learning method which used both binary similarity score and non-binary similarity score.
+
+### Loss functions
+
+There are many loss functions that we can use. For instance there are SMARTLoss, L1Loss, L2loss, MAE, MSE functions. SMARTLoss is operating with regarding the number of embeddings and we thought this loss function would be good for accomplishing good score. However, we have failed to apply this function because of short of time. We regreted that we didn't spend our time more to apply this.
+
+### Hyperparameter Tuning
+
+We did diverse tunings including learning rate(from 0.01 to 0.03), batch size and so on.
 
 ### Detailed Timeline
 
@@ -83,8 +89,6 @@ This indicates that rather than precisely predicting the correct values, it's mo
 
 - GPU server retrieval: April 28th (Friday) 16:00
 
-
-
 ### Competition Rules
 
 - [대회 참여 제한] NLP 도메인을 수강하고 있는 캠퍼에 한하여 리더보드 제출이 가능합니다.
@@ -102,8 +106,6 @@ This indicates that rather than precisely predicting the correct values, it's mo
 - [데이터 증강] Train/Dev 데이터에 한해 증강 가능합니다. 다만 기술적/통계적 근거가 존재해야하며, 누구나 동일한 증강 결과물을 생성할 수 있어야 합니다.
 
 - [데이터셋 저작권] 대회 데이터셋은 '캠프 교육용 라이선스' 아래 사용 가능합니다. 저작권 관련 세부 내용은 부스트코스 공지사항을 반드시 참고 해주세요.
-
-
 
 AI Stages 대회 공통사항
 
@@ -304,23 +306,17 @@ Download Baseline Code Link
 
 https://aistages-prod-server-public.s3.amazonaws.com/app/Competitions/000236/data/code.tar.gz
 
-
-
 ### Leader Board
 
 ![](https://lh4.googleusercontent.com/8mQc-x-HbA7symQiQUJw9g1g1gEu6jXRZiHNdmpAOAkPBrwK9ZkEDw1KkeI058SAX3naUukrbX8MC7CSqTMr9Tg-7RwFxnPbByN72e-q-2MhmcVeckwoovSMs8nX5gsAQg96wKR4adE4_zz1NxpuZsY)
 
 ![](https://lh3.googleusercontent.com/J6QbprYyDeniErGlX4nk-7IQViN2LH24UQVJveYg7uATcI4gVSs5ChrYZhLs31pTKBHP2dKbYzVt5LPQP2xauh3dAWy84sNOtkiGkmgVcq714Qm5J_2_7ELEcc-k4eikaCbxsLySZt1HnmtOtuyePiw)
 
-
-
 ### ETC
 
 [공유] STS 문제에서 피어슨 상관계수를 사용하는 이유
 
 Posted by 정지수
-
-
 
 NLP의 많은 문제들을 풀 때, 대체로 우리는 이미 통상적으로 사용하는 평가 지표가 있습니다. 앞서 배운 것처럼, N21, N2N 문제에는 f1-score, N2M 문제에는 BLEU, ROGUE 등이 있죠.
 
@@ -378,15 +374,11 @@ pearson(preds, target)
 
 https://torchmetrics.readthedocs.io/en/latest/regression/pearson_corr_coef.html**
 
-
-
 [공유] 거인의 어깨에 올라서기
 
 Posted by 황태욱_조교
 
 2023.03.28.18:07
-
-
 
 컴퓨터공학은 다른 학문에 비해 변화 속도가 빠른 편인데, 그 중 AI는 유독 더 빠른편입니다. 최신 기술을 찾는 가장 확실한 방법은 논문을 보는 것입니다.
 
@@ -419,8 +411,6 @@ Posted by 황태욱_조교
 이러한 방법만 잘 활용하시면 쉽게 상위권에 근접할 수 있습니다.
 
 아직까지 국내에서는 대회에서 정보 교류가 적은 편인데, 서로 발전할 수 있는 기회가 많아지길 바랍니다!
-
-
 
 [공유] Huggingface 200% 활용하기
 

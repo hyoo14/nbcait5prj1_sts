@@ -2,7 +2,7 @@
 
 Semantic Text Similarity (STS) is a natural language processing task that quantifies how similar two sentences are in terms of meaning.
 
-#Boostcamp 5th #NLP
+#BC 5th #NLP
 
 Period| 2023.04.12 ~ 2023.04.20 19:00
 
